@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Models;
+
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace WebAPI.Controllers
@@ -24,14 +25,14 @@ namespace WebAPI.Controllers
         }
         // GET: api/values
         [HttpGet]
-        public IEnumerable<User> Get()
+        public IEnumerable<User> GetUsers()
         {
             return db.Users.ToList();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public IActionResult GetUser(int id)
         {
             User user = db.Users.FirstOrDefault(x => x.Id == id);
             if (user == null)
@@ -41,7 +42,7 @@ namespace WebAPI.Controllers
 
         // POST api/values
         [HttpPost]
-        public IActionResult Post([FromBody]User user)
+        public IActionResult CreateUser([FromBody]User user)
         {
             if (user == null)
             {
@@ -55,7 +56,7 @@ namespace WebAPI.Controllers
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody]User user)
+        public IActionResult EditUser(int id, [FromBody]User user)
         {
             if (user == null)
             {
@@ -78,7 +79,7 @@ namespace WebAPI.Controllers
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public IActionResult DeleteUser(int id)
         {
             User user = db.Users.FirstOrDefault(x => x.Id == id);
             if (user == null)

@@ -25,7 +25,8 @@ namespace WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string connection = Configuration.GetConnectionString("DefaultConnection");
+           //string connection = Configuration.GetConnectionString("DefaultConnection");
+            string connection = "Server=(localdb)\\mssqllocaldb;Database=usersdb;Trusted_Connection=True;";
             services.AddDbContext<UsersContext>(options => options.UseSqlServer(connection));
             services.AddMvc();
         }
@@ -33,11 +34,16 @@ namespace WebAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            /*
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseMvc();
+            */
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
             app.UseMvc();
         }
     }
