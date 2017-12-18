@@ -18,11 +18,12 @@ namespace WebAPI.Controllers
             this.db = context;
             if (!db.Users.Any())
             {
-                db.Users.Add(new Models.User { FirstName = "Nikita", LastName = "Pashko", info = "16 y.o.", photourl = "..."});
-                db.Users.Add(new Models.User { FirstName = "Aliaksandra", LastName = "Pashko", info = "19 y.o.", photourl = "..." });
+                db.Users.Add(new Models.User { FirstName = "Nikita", LastName = "Pashko", Info = "16 y.o.", Photourl = "..."});
+                db.Users.Add(new Models.User { FirstName = "Aliaksandra", LastName = "Pashko", Info = "19 y.o.", Photourl = "..." });
                 db.SaveChanges();
             }
         }
+
         // GET: api/values
         [HttpGet]
         public IEnumerable<User> GetUsers()
@@ -46,8 +47,11 @@ namespace WebAPI.Controllers
         {
             if (user == null)
             {
-                return BadRequest();
+                ModelState.AddModelError("", "Не указаны данные для пользователя");
+                return BadRequest(ModelState);
             }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             db.Users.Add(user);
             db.SaveChanges();
@@ -58,6 +62,7 @@ namespace WebAPI.Controllers
         [HttpPut("{id}")]
         public IActionResult EditUser(int id, [FromBody]User user)
         {
+            /*
             if (user == null)
             {
                 return BadRequest();
@@ -73,6 +78,18 @@ namespace WebAPI.Controllers
             item.info = user.info;
             item.photourl = user.photourl;
             db.Update(item);
+            db.SaveChanges();
+            return Ok(user);
+            */
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            if (!db.Users.Any(x => x.Id == user.Id))
+            {
+                return NotFound();
+            }
+            db.Update(user);
             db.SaveChanges();
             return Ok(user);
         }

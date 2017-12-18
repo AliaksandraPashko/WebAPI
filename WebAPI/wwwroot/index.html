@@ -2,23 +2,23 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width-1000" />
     <title>List of users</title>
     <link href="lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
     <script src="lib/jquery/dist/jquery.js"></script>
-    <script type="text/javascript" src="wwwroot/index_script.js"></script>
+
 </head>
-<body onload="GetUsers()">
-    <script src="wwwroot/index_script.js"></script>
+<body>
     <h2>List of users</h2>
+    <div id="errors" class="alert alert-danger"></div>
     <form name="userForm">
         <input type="hidden" name="id" value="0">
         <div class="form-group">
-            <label for="firstName">firstName:</label>
+            <label for="firstName">First Name:</label>
             <input class="form-control" name="firstName" />
         </div>
         <div class="form-group">
-            <label for="lastName">lastName:</label>
+            <label for="lastName">Last Name:</label>
             <input class="form-control" name="lastName" />
         </div>
         <div class="form-group">
@@ -35,8 +35,182 @@
         </div>
     </form>
     <table class="table table-condensed table-striped table-bordered">
-        <thead><tr><th>Id</th><th>firstName</th><th>lastName</th><th>Information</th><th>Photo</th><th></th></tr></thead>
+        <thead><tr><th>№</th><th>First Name</th><th>Last Name</th><th>Information</th><th>Photo</th><th></th></tr></thead>
         <tbody></tbody>
     </table>
+
+    <script>
+
+        //getting all users
+        function GetUsers() {
+            $.ajax({
+                url: '/api/users',
+                type: 'GET',
+                contentType: "application/json",
+                success: function (users) {
+                    console.log(users);
+                    var rows = "";
+                    $.each(users, function (index, user) {
+                        rows += row(user);
+                    })
+                    $("table tbody").append(rows);
+                }
+            });
+        }
+
+        // create string for table
+        var row = function (user) {
+            return "<tr data-rowid='" + user.id + "'><td>" + user.id + "</td>" +
+                "<td>" + user.firstName + "</td> <td>" + user.lastName + "</td>" +
+                "<td>" + user.info + "</td> <td>" + user.photourl + "</td>" +
+                "<td><a class='editLink' data-id='" + user.id + "'>Edit</a> | " +
+                "<a class='removeLink' data-id='" + user.id + "'>Delete</a></td></tr>";
+        }
+
+        //getting user by id
+        function GetUser(id) {
+            $.ajax({
+                url: '/api/users/' + id,
+                type: 'GET',
+                contentType: "application/json",
+                success: function (user) {
+                    console.log(user);
+                    var form = document.forms["userForm"];
+                    form.elements["id"].value = user.id;
+                    form.elements["firstName"].value = user.firstName;
+                    form.elements["lastName"].value = user.lastName;
+                    form.elements["info"].value = user.info;
+                    form.elements["photourl"].value = user.photourl;
+                }
+            });
+        }
+
+        //adding user
+        function CreateUser(userfirstName, userlastName, userInfo, userPhotourl) {
+            $.ajax({
+                url: "api/users",
+                contentType: "application/json",
+                method: "POST",
+                data: JSON.stringify({
+                    firstName: userfirstName,
+                    lastName: userlastName,
+                    info: userInfo,
+                    photourl: userPhotourl
+                }),
+                success: function (user) {
+                    console.log(user);
+                    reset();
+                    $("table tbody").append(row(user));
+                },
+                error: function (jxqr, error, status) {
+                    console.log(jxqr);
+                    if (jxqr.responseText === "") {
+                        $('#errors').append("<h3>" + jxqr.statusText + "</h3>");
+                    }
+                    else {
+                        var response = JSON.parse(jxqr.responseText);
+                        if (response['']) {
+                            $.each(response[''], function (index, item) {
+                                $('#errors').append("<p>" + item + "</p>");
+                            });
+                        }
+
+                        if (response['FirstName']) {
+                            $.each(response['FirstName'], function (index, item) {
+                                $('#errors').append("<p>" + item + "</p>");
+                            });
+                        }
+
+                        if (response['LastName']) {
+                            $.each(response['LastName'], function (index, item) {
+                                $('#errors').append("<p>" + item + "</p>");
+                            });
+                        }
+                    }
+
+                    $('#errors').show();
+                }
+            })
+        }
+
+        //editing user
+        function EditUser(userId, userfirstName, userlastName, userInfo, userPhotourl) {
+            $.ajax({
+                url: "api/users/" + userId,
+                contentType: "application/json",
+                method: "PUT",
+                data: JSON.stringify({
+                    id: userId,
+                    firstName: userfirstName,
+                    lastName: userlastName,
+                    info: userInfo,
+                    photourl: userPhotourl
+                }),
+                success: function (user) {
+                    console.log(user);
+                    reset();
+                    $("tr[data-rowid='" + user.id + "']").replaceWith(row(user));
+                }
+            })
+        }
+
+        // deleting user
+        function DeleteUser(id) {
+            $.ajax({
+                url: "api/users/" + id,
+                contentType: "application/json",
+                method: "DELETE",
+                success: function (user) {
+                    console.log(user);
+                    $("tr[data-rowid='" + user.id + "']").remove();
+                }
+            })
+        }
+
+        // reset form
+        function reset() {
+            var form = document.forms["userForm"];
+            form.reset();
+            form.elements["id"].value = 0;
+        }
+
+        // reset form
+        $("#reset").click(function (e) {
+            e.preventDefault();
+            reset();
+        })
+
+        // submit form
+        $("form").submit(function (e) {
+            e.preventDefault();
+            $('#errors').empty();
+            $('#errors').hide();
+            var id = this.elements["id"].value;
+            var firstName = this.elements["firstName"].value;
+            var lastName = this.elements["lastName"].value;
+            var info = this.elements["info"].value;
+            var photourl = this.elements["photourl"].value;
+            if (id == 0)
+                CreateUser(firstName, lastName, info, photourl);
+            else
+                EditUser(id, firstName, lastName, info, photourl);
+        });
+
+        // Edit
+        $("body").on("click", ".editLink", function () {
+            var id = $(this).data("id");
+            GetUser(id);
+        })
+
+        // Delete
+        $("body").on("click", ".removeLink", function () {
+            var id = $(this).data("id");
+            DeleteUser(id);
+        })
+
+        GetUsers();
+
+    </script>
+
 </body>
 </html>
